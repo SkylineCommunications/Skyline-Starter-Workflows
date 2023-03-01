@@ -1,0 +1,158 @@
+name: DataMiner Sync Starter Workflows
+
+# Controls when the workflow will run
+on:
+  schedule:
+    # Run every hour, feel free to adjust this to your specific needs.
+    - cron: "0 * * * *"
+    
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  createDotGithubIfNotExist:
+    runs-on: ubuntu-latest
+    name: Verify '.github' repository.
+    steps:
+      - name: Check If .github Exists
+        id: check_github_repo
+        run: |
+          if curl -s https://api.github.com/repos/${{ github.repository_owner }}/.github | grep -q 'Not Found'; then
+            echo not_found='true'>> $GITHUB_OUTPUT
+          else
+            echo not_found='false'>> $GITHUB_OUTPUT
+          fi
+      - name: Use Node.js
+        if: steps.check_github_repo.outputs.not_found == 'true'
+        uses: actions/setup-node@v2
+      - name: Create GitHub Repo
+        if: steps.check_github_repo.outputs.not_found == 'true'
+        uses: howlowck/create-repo-action@v1.0
+        with:
+          # Organization name of the repo
+          repoOrg: ${{ github.repository_owner }}       
+          # Repository name
+          repoName: .github
+          # Repository description
+          repoDescription: Default Organisation Repository
+          # Repository visibility
+          repoVisibility: public
+          # Security token
+          securityToken: ${{ secrets.PAT }}
+          
+      - name: Create main branch
+        if: steps.check_github_repo.outputs.not_found == 'true'
+        id: create_main_branch
+        run: |
+          mkdir -p newRepo
+          cd newRepo
+          git config --global user.email "SkylineStarterWorkflows@No-Reply.com"
+          git config --global user.name "SkylineStarterWorkflows"
+          echo "# ${{ github.repository_owner }}" >> README.md
+          git init --initial-branch=main
+          git init -b main
+          git add README.md
+          git commit -m "first commit"
+          git push --set-upstream https://${{ secrets.PAT }}@github.com/${{ github.repository_owner }}/.github.git main
+  autoSyncFork:
+    name: Sync Fork with Upstream.
+    # dont sync when this is the original
+    # git merge -s ours upstream/main --allow-unrelated-histories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: '${{ secrets.PAT }}'
+      - name: Sync Fork With Remote
+        if: github.repository_owner!='SkylineCommunications'
+        id: check_github_repo
+        run: | 
+          git config --global user.email "SyncBot@No-Reply.com"
+          git config --global user.name "SyncBot"
+          git remote add upstream https://github.com/SkylineCommunications/Skyline-Starter-Workflows.git
+          git fetch upstream
+          git checkout main
+          git merge -s recursive -X ours upstream/main --allow-unrelated-histories
+          git push origin main --force
+  collectWorkflowFiles:
+    name: Find Workflow Files
+    runs-on: ubuntu-latest
+    needs: [autoSyncFork,createDotGithubIfNotExist]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: 'main'
+    - name: Archive Workflow Files
+      uses: actions/upload-artifact@v3
+      with:
+        name: WorkflowFiles
+        path: "${{ github.workspace }}/workflow-templates"
+  createPullRequest:
+    name: Pull Request
+    runs-on: ubuntu-latest
+    needs: collectWorkflowFiles
+    steps:
+    - uses: actions/checkout@v3       
+      with:
+          token: ${{ secrets.PAT }}
+          repository: ${{ github.repository_owner }}/.github
+    - name: Download WorkflowFiles
+      id: downloadWorkflowFiles
+      uses: actions/download-artifact@v3
+      with:
+        name: WorkflowFiles
+        path: "${{ github.workspace }}/workflow-templates"
+    - name: Create Pull Request
+      # You may pin to the exact commit or the version.
+      # uses: peter-evans/create-pull-request@2b011faafdcbc9ceb11414d64d0573f37c774b04
+      uses: peter-evans/create-pull-request@v4.2.3
+      with:
+        # GITHUB_TOKEN or a `repo` scoped Personal Access Token (PAT)
+        token: ${{ secrets.PAT }}
+        # Relative path under $GITHUB_WORKSPACE to the repository. Defaults to $GITHUB_WORKSPACE.
+
+        # path: # optional
+        # A comma or newline-separated list of file paths to commit. Paths should follow git's pathspec syntax. Defaults to adding all new and modified files.
+
+       # add-paths: # optional
+        # The message to use when committing changes.
+       # commit-message: # optional, default is [create-pull-request] automated change
+        # The committer name and email address in the format `Display Name <email@address.com>`. Defaults to the GitHub Actions bot user.
+
+        #committer: # optional, default is GitHub <noreply@github.com>
+        # The author name and email address in the format `Display Name <email@address.com>`. Defaults to the user who triggered the workflow run.
+
+         # author: # optional, default is ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        # Add `Signed-off-by` line by the committer at the end of the commit log message.
+         # signoff: # optional
+        # The pull request branch name.
+         # branch: # optional, default is create-pull-request/patch
+        # Delete the `branch` when closing pull requests, and when undeleted after merging. Recommend `true`.
+
+         # delete-branch: # optional
+        # The branch suffix type when using the alternative branching strategy.
+         # branch-suffix: # optional
+        # The pull request base branch. Defaults to the branch checked out in the workflow.
+
+         # base: # optional
+        # A fork of the checked out parent repository to which the pull request branch will be pushed. e.g. `owner/repo-fork`. The pull request will be created to merge the fork's branch into the parent's base.
+
+        #push-to-fork: 
+        
+        # The title of the pull request.
+        #title: # optional, default is Changes by create-pull-request action
+        # The body of the pull request.
+        #body: # optional, default is Automated changes by [create-pull-request](https://github.com/peter-evans/create-pull-request) GitHub action
+        # A comma or newline separated list of labels.
+        #labels: # optional
+        # A comma or newline separated list of assignees (GitHub usernames).
+        #assignees: # optional
+        # A comma or newline separated list of reviewers (GitHub usernames) to request a review from.
+        #reviewers: # optional
+        # A comma or newline separated list of GitHub teams to request a review from. Note that a `repo` scoped Personal Access Token (PAT) may be required.
+
+        #team-reviewers: # optional
+        # The number of the milestone to associate the pull request with.
+        #milestone: # optional
+        # Create a draft pull request. It is not possible to change draft status after creation except through the web interface
+        #draft: # optional
