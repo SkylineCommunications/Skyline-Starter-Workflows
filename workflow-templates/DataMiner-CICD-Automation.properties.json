@@ -1,0 +1,8 @@
+{
+    "name": "DataMiner CICD AutomationScript",
+    "description": "Starter Workflow for CICD with a Skyline formatted AutomationScript repository.",
+    "filePatterns": [
+        "AutomationScript.sln",
+		"DLLs"
+    ]
+}
