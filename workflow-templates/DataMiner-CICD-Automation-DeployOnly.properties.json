@@ -1,0 +1,8 @@
+{
+    "name": "DataMiner DeployOnly AutomationScript",
+    "description": "Starter Workflow for CD-Only with a Skyline formatted AutomationScript repository. Warning: skips all quality control and should not be used for official releases.",
+    "filePatterns": [
+        "AutomationScript.sln",
+		"DLLs"
+    ]
+}
