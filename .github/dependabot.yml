@@ -11,6 +11,6 @@ updates:
       interval: "weekly"
       
   - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/.github/workflow-templates/" # Location of package manifests
+    directory: "/workflow-templates/" # Location of package manifests
     schedule:
       interval: "weekly"
