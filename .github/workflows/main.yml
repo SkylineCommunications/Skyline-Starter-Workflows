@@ -98,7 +98,7 @@ jobs:
           repository: ${{ github.repository_owner }}/.github
     - name: Download WorkflowFiles
       id: downloadWorkflowFiles
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: WorkflowFiles
         path: "${{ github.workspace }}/workflow-templates"
