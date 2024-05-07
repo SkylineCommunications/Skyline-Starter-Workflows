@@ -5,10 +5,11 @@ name: DataMiner DeployOnly Automation
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: []
     tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-**"
       - "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
       - "[0-9]+.[0-9]+.[0-9]+.[0-9]+-**"
 
@@ -52,27 +53,35 @@ jobs:
        - name: NuGet restore solution
          run: dotnet restore "${{ steps.findSlnFile.outputs.solutionFilePath }}"
 
-       - name: Skyline DataMiner Deploy Action Development
+       - name: Install .NET Tools
+         run: |
+           dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager
+           dotnet tool install -g Skyline.DataMiner.CICD.Tools.CatalogUpload
+           dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
+
+       - name: Create package name
+         id: packageName
+         run: |
+          if [[ ${{ github.ref_type }} == 'branch' ]]; then
+            tempName="${{ github.repository }} ${{ github.ref_name }}_B${{ github.run_number }}"
+          else
+            tempName="${{ github.repository }} ${{ github.ref_name }}"
+          fi
+            
+          echo name=${tempName//[\"\/\\<>|:*?]/_} >> $GITHUB_OUTPUT
+         shell: bash
+
+       - name: Create dmapp package (Development)
          if: github.ref_type == 'branch'
-         uses: SkylineCommunications/Skyline-DataMiner-Deploy-Action@v1
-         with:
-           # Stage deploy
-           stage: All
-           # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-           api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
-           solution-path: ./${{ steps.findSlnFile.outputs.solutionFilePath }}
-           artifact-name: ${{ github.repository }} ${{ github.ref_name }}_B${{ github.run_number }}
-           build-number: ${{ github.run_number }}
-           
-       - name: Skyline DataMiner Deploy Action Release
+         run: dataminer-package-create dmapp "${{ github.workspace }}" --type automation --build-number ${{ github.run_number }} --output "${{ github.workspace }}" --name "${{ steps.packageName.outputs.name }}"
+
+       - name: Create dmapp package (Release)
          if: github.ref_type == 'tag'
-         uses: SkylineCommunications/Skyline-DataMiner-Deploy-Action@v1
-         with:
-           # Stage deploy
-           stage: All
-           # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-           api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
-           solution-path: ./${{ steps.findSlnFile.outputs.solutionFilePath }}
-           artifact-name: ${{ github.repository }} ${{ github.ref_name }}
-           version: ${{ github.ref_name }}
-           
+         run: dataminer-package-create dmapp "${{ github.workspace }}" --type automation --version ${{ github.ref_name }} --output "${{ github.workspace }}" --name "${{ steps.packageName.outputs.name }}"
+
+       - name: Upload to Catalog
+         id: uploadToCatalog
+         run: echo "id=$(dataminer-catalog-upload --path-to-artifact "${{ github.workspace }}/${{ steps.packageName.outputs.name }}.dmapp" --dm-catalog-token ${{ secrets.DATAMINER_DEPLOY_KEY }})" >> $GITHUB_OUTPUT
+
+       - name: Deploy to DataMiner
+         run: dataminer-package-deploy from-catalog --artifact-id "${{ steps.uploadToCatalog.outputs.id }}" --dm-catalog-token ${{ secrets.DATAMINER_DEPLOY_KEY }}
