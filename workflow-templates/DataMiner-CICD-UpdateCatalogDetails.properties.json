@@ -1,0 +1,4 @@
+{
+    "name": "DataMiner CICD Update Catalog Details",
+    "description": "Starter Workflow for CICD to update the catalog details of a record."
+}

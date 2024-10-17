@@ -1,0 +1,19 @@
+name: DataMiner CICD Update Catalog Details
+
+# Controls when the workflow will run
+on:
+  # push:
+  #   branches:
+  #     - main
+  #     - master
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  Catalog:
+    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Update Catalog Details.yml@main
+    secrets:
+      # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner Organization or Agent.
+      api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
