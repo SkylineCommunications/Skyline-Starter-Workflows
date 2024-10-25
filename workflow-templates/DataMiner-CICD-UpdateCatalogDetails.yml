@@ -13,7 +13,7 @@ on:
 jobs:
 
   Catalog:
-    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Update Catalog Details.yml@main
+    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Update Catalog Details Workflow.yml@main
     secrets:
       # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner Organization or Agent.
       api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
