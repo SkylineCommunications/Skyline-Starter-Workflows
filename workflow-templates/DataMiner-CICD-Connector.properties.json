@@ -1,0 +1,9 @@
+{
+    "name": "DataMiner CICD Connector",
+    "description": "Starter Workflow for CICD with a Skyline formatted Connector (aka protocol, driver) repository.",
+    "filePatterns": [
+        "protocol.xml",
+        "QActions",
+		"DLLs"
+    ]
+}

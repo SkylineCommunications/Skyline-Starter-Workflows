@@ -1,0 +1,9 @@
+{
+    "name": "DataMiner CICD Connector Deploy Only",
+    "description": "Starter Workflow for CD only with a Skyline formatted Connector (aka protocol, driver) repository. Warning: avoid using this for stable releases. Use CI/CD for that.",
+    "filePatterns": [
+        "protocol.xml",
+        "QActions",
+		"DLLs"
+    ]
+}
