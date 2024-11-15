@@ -25,16 +25,17 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Install DataMiner Deploy
-        run: dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager --version 2.0.3
+        run: 
 
-      - name: Install DataMiner Deploy
-        run: dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
+      - name: Install .NET Tools
+        run: |
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
       
 #ON RELEASE OR PRE-RELEASE
       - name: Create DMAPP - Release
         if: inputs.referenceType == 'tag'
         run: dataminer-package-create dmprotocol "${{ github.workspace }}" --name  "${{ github.repository  }}_${{ github.ref_name }}" --output "${{ github.workspace }}/_PackageResults" --version-override "${{ github.ref_name }}"
-
 
 #ON BUILD
       - name: Find and extract Protocol Version

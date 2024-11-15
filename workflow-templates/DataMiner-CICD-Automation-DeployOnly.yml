@@ -55,7 +55,7 @@ jobs:
 
        - name: Install .NET Tools
          run: |
-           dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager --version 2.0.3
+           dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager
            dotnet tool install -g Skyline.DataMiner.CICD.Tools.CatalogUpload
            dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
 
