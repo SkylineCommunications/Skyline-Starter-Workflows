@@ -1,0 +1,64 @@
+name: DataMiner CICD Connector
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: []
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+-**"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  CI:
+    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Connector Master Workflow.yml@main
+    with:
+      referenceName: ${{ github.ref_name }}
+      runNumber: ${{ github.run_number }}
+      referenceType: ${{ github.ref_type }}
+      repository: ${{ github.repository }}
+      owner: ${{ github.repository_owner }}
+      sonarCloudProjectName: #TODO: Go to 'https://sonarcloud.io/projects/create' and create a project. Then enter the id of the project as mentioned in the sonarcloud project url here.
+    secrets:
+      # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
+      api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
+      sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
+    
+   # Optional 0 or More CD Jobs as needed
+  # CD:
+  #  # if: github.ref_type == 'tag'
+  #   environment: staging
+  #   name: CD
+  #   runs-on: windows-latest
+  #   needs: CI
+  
+  #   steps:
+  #     - uses: actions/checkout@v4
+      
+  #     - name: Install DataMiner Deploy
+  #       run: dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
+      
+  #    # Deploys the artifact directly to an internet-accessible DataMiner Agent. Deployment from the catalog currently not supported.
+  #     - name: Download Created Connector Package
+  #       id: downloadPackage
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: Connector Package
+  #         path: _PackageResults
+          
+  #     - name: Find .dmprotocol
+  #       id: findcreatedpackage        
+  #       run: |
+  #         IFS=$'\n'
+  #         echo packageName=$(find _PackageResults -type f -name '*.dmprotocol') >> $GITHUB_OUTPUT
+  #         unset IFS
+  #       shell: bash  
+        
+  #     - name: Direct Agent Deployment
+  #       run: dataminer-package-deploy from-artifact --path-to-artifact "${{ steps.findcreatedpackage.outputs.packageName }}" --dm-server-location "${{ secrets.serverLocation }}" --dm-user "${{ secrets.dataminerUser }}" --dm-password "${{ secrets.dataminerPassword }}"
+      

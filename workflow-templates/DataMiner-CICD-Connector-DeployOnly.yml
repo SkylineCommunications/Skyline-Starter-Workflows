@@ -1,0 +1,75 @@
+name: DataMiner CICD Connector Deploy Only
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: []
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+-**"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+   # Optional 0 or More CD Jobs as needed
+  CD:
+   # if: github.ref_type == 'tag'
+    environment: development
+    name: CD
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install DataMiner Deploy
+        run: 
+
+      - name: Install .NET Tools
+        run: |
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
+      
+#ON RELEASE OR PRE-RELEASE
+      - name: Create DMAPP - Release
+        if: inputs.referenceType == 'tag'
+        run: dataminer-package-create dmprotocol "${{ github.workspace }}" --name  "${{ github.repository  }}_${{ github.ref_name }}" --output "${{ github.workspace }}/_PackageResults" --version-override "${{ github.ref_name }}"
+
+#ON BUILD
+      - name: Find and extract Protocol Version
+        if: inputs.referenceType != 'tag'
+        run: |
+          # Find the protocol.xml file
+          xml_file=$(find "${{ github.workspace }}" -maxdepth 1 -name "protocol.xml" -or -name "Protocol.xml" | head -n 1)
+
+          # Extract the Protocol Version using awk and store it in a variable
+          protocol_version=$(awk -F '[><]' '/<Version>/ {print $3}' "$xml_file")
+  
+
+          # Print the extracted version for verification
+          echo "Extracted Protocol Version: $protocol_version"
+
+          # Set the extracted version as an environment variable for future use
+          echo "PROTOCOL_VERSION=$protocol_version" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create DMAPP - Build
+        if: inputs.referenceType != 'tag'
+        run: |
+          dataminer-package-create dmprotocol "${{ github.workspace }}" --name  "${{ github.repository  }}_${{ github.run_number }}" --output "${{ github.workspace }}/_PackageResults" --version-override "${{ env.PROTOCOL_VERSION }}_B${{ github.run_number }}"
+        shell: bash
+     
+     # Deploys the artifact directly to an internet-accessible DataMiner Agent.   
+      - name: Find .dmprotocol
+        id: findcreatedpackage        
+        run: |
+          IFS=$'\n'
+          echo packageName=$(find _PackageResults -type f -name '*.dmprotocol') >> $GITHUB_OUTPUT
+          unset IFS
+        shell: bash  
+        
+      - name: Direct Agent Deployment
+        run: dataminer-package-deploy from-artifact --path-to-artifact "${{ steps.findcreatedpackage.outputs.packageName }}" --dm-server-location "${{ secrets.serverLocation }}" --dm-user "${{ secrets.dataminerUser }}" --dm-password "${{ secrets.dataminerPassword }}"
+      
