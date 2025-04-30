@@ -29,36 +29,19 @@ jobs:
       api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
       sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
     
-   # Optional 0 or More CD Jobs as needed
+  # Optional 0 or More CD Jobs as needed
   # CD:
-  #  # if: github.ref_type == 'tag'
-  #   environment: staging
+  #   if: github.ref_type == 'tag'
+  #   environment: production
   #   name: CD
-  #   runs-on: windows-latest
+  #   runs-on: ubuntu-latest
   #   needs: CI
-  
+
   #   steps:
   #     - uses: actions/checkout@v4
-      
-  #     - name: Install DataMiner Deploy
-  #       run: dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
-      
-  #    # Deploys the artifact directly to an internet-accessible DataMiner Agent. Deployment from the catalog currently not supported.
-  #     - name: Download Created Connector Package
-  #       id: downloadPackage
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: Connector Package
-  #         path: _PackageResults
-          
-  #     - name: Find .dmprotocol
-  #       id: findcreatedpackage        
-  #       run: |
-  #         IFS=$'\n'
-  #         echo packageName=$(find _PackageResults -type f -name '*.dmprotocol') >> $GITHUB_OUTPUT
-  #         unset IFS
-  #       shell: bash  
         
-  #     - name: Direct Agent Deployment
-  #       run: dataminer-package-deploy from-artifact --path-to-artifact "${{ steps.findcreatedpackage.outputs.packageName }}" --dm-server-location "${{ secrets.serverLocation }}" --dm-user "${{ secrets.dataminerUser }}" --dm-password "${{ secrets.dataminerPassword }}"
-      
+  #     - name: Install .NET Tools
+  #       run: dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
+
+  #     - name: Deploy to DataMiner
+  #       run: dataminer-package-deploy from-catalog --catalog-id "TODO:Fill-In-Catalog-GUID" --catalog-version ${{ github.ref_name }} --agent-destination-id "TODO:Fill-In-DataMiner-Agent-GUID" --dm-catalog-token ${{ secrets.DATAMINER_DEPLOY_KEY }}
