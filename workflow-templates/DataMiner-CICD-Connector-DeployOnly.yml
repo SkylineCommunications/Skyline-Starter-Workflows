@@ -30,6 +30,7 @@ jobs:
       - name: Install .NET Tools
         run: |
           dotnet tool install -g Skyline.DataMiner.CICD.Tools.Packager
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.CatalogUpload
           dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
       
 #ON RELEASE OR PRE-RELEASE
@@ -61,7 +62,6 @@ jobs:
           dataminer-package-create dmprotocol "${{ github.workspace }}" --name  "${{ github.repository  }}_${{ github.run_number }}" --output "${{ github.workspace }}/_PackageResults" --version-override "${{ env.PROTOCOL_VERSION }}_B${{ github.run_number }}"
         shell: bash
      
-     # Deploys the artifact directly to an internet-accessible DataMiner Agent.   
       - name: Find .dmprotocol
         id: findcreatedpackage        
         run: |
@@ -69,7 +69,13 @@ jobs:
           echo packageName=$(find _PackageResults -type f -name '*.dmprotocol') >> $GITHUB_OUTPUT
           unset IFS
         shell: bash  
-        
-      - name: Direct Agent Deployment
-        run: dataminer-package-deploy from-artifact --path-to-artifact "${{ steps.findcreatedpackage.outputs.packageName }}" --dm-server-location "${{ secrets.serverLocation }}" --dm-user "${{ secrets.dataminerUser }}" --dm-password "${{ secrets.dataminerPassword }}"
+
+      # - name: Direct Agent Deployment Alternative
+      #   run: dataminer-package-deploy from-artifact --path-to-artifact "${{ steps.findcreatedpackage.outputs.packageName }}" --dm-server-location "${{ secrets.serverLocation }}" --dm-user "${{ secrets.dataminerUser }}" --dm-password "${{ secrets.dataminerPassword }}"     
       
+      - name: Volatile Upload to Catalog
+        id: uploadToCatalog
+        run: echo "id=$(dataminer-catalog-upload --path-to-artifact "${{ steps.findcreatedpackage.outputs.packageName }}" --dm-catalog-token ${{ secrets.DATAMINER_DEPLOY_KEY }})" >> $GITHUB_OUTPUT
+
+      - name: Deploy to DataMiner
+        run: dataminer-package-deploy from-volatile --artifact-id "${{ steps.uploadToCatalog.outputs.id }}" --dm-system-token ${{ secrets.DATAMINER_DEPLOY_KEY }}
