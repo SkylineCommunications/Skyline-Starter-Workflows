@@ -26,7 +26,7 @@ jobs:
       sonarCloudProjectName: #TODO: Go to 'https://sonarcloud.io/projects/create' and create a project. Then enter the id of the project as mentioned in the sonarcloud project url here.
     secrets:
       # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-      api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
+      api-key: ${{ secrets.DATAMINER_TOKEN }}
       sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
     
   # # Optional 0 or More CD Jobs as needed
@@ -44,4 +44,4 @@ jobs:
   #       run: dotnet tool install -g Skyline.DataMiner.CICD.Tools.DataMinerDeploy
 
   #     - name: Deploy to DataMiner
-  #       run: dataminer-package-deploy from-catalog --catalog-id "TODO:Fill-In-Catalog-GUID" --catalog-version ${{ github.ref_name }} --agent-destination-id "TODO:Fill-In-DataMiner-Agent-GUID" --dm-catalog-token ${{ secrets.DATAMINER_DEPLOY_KEY }}
+  #       run: dataminer-package-deploy from-catalog --catalog-id "TODO:Fill-In-Catalog-GUID" --catalog-version ${{ github.ref_name }} --agent-destination-id "TODO:Fill-In-DataMiner-Agent-GUID" --dm-catalog-token ${{ secrets.DATAMINER_TOKEN }}
