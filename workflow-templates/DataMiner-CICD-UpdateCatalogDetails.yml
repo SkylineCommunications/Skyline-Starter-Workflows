@@ -17,6 +17,6 @@ jobs:
 
   Catalog:
     uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Update Catalog Details Workflow.yml@main
-    secrets:
-      # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner Organization or Agent.
-      api-key: ${{ secrets.DATAMINER_TOKEN }}
+    # secrets:
+      # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner organization.
+      # api-key: ${{ secrets.DATAMINER_TOKEN }} # Only needed when uploading to the Catalog for a different organization than Skyline Communications
