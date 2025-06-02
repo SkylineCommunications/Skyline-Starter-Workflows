@@ -18,16 +18,30 @@ jobs:
   CI:
     uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Connector Master Workflow.yml@main
     with:
-      referenceName: ${{ github.ref_name }}
-      runNumber: ${{ github.run_number }}
-      referenceType: ${{ github.ref_type }}
-      repository: ${{ github.repository }}
-      owner: ${{ github.repository_owner }}
       sonarCloudProjectName: #TODO: Go to 'https://sonarcloud.io/projects/create' and create a project. Then enter the id of the project as mentioned in the sonarcloud project url here.
-    secrets:
-      # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-      api-key: ${{ secrets.DATAMINER_TOKEN }}
-      sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
+    # secrets:
+      # These secrets are only required when:
+      # - The repository is not part of the SkylineCommunications GitHub Organization.
+      # - You want to publish to a DataMiner Catalog belonging to a different organization than Skyline Communications.
+
+      # The API key used for authentication with the DataMiner Catalog.
+      # Generate this key in the DCP Admin app: https://admin.dataminer.services/
+      # Uncomment when publishing to a Catalog of a different organization than Skyline Communications.
+      # api-key: ${{ secrets.DATAMINER_TOKEN }}
+
+      # Token used for SonarCloud integration.
+      # Not needed when working within the SkylineCommunications organization.
+      # sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
+
+      # Optional OIDC inputs, required only when running workflows from a repository
+      # outside of the SkylineCommunications GitHub Organization and you don't provide individual secrets.
+      #
+      # A prerequisite is an Azure Key Vault named `kv-master-cicd-secrets`,
+      # which must contain all required secrets as defined in the reusable workflows under `secret_names=...`.
+
+      # oidc-client-id: ${{ secrets.OIDC_CLIENT_ID }}
+      # oidc-tenant-id: ${{ secrets.OIDC_TENANT_ID }}
+      # oidc-subscription-id: ${{ secrets.OIDC_SUBSCRIPTION_ID }}
     
   # Optional 0 or More CD Jobs as needed
   # CD:
