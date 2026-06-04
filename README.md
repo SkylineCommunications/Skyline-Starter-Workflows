@@ -1,4 +1,8 @@
 # Skyline-Starter-Workflows
+
+> [!WARNING]
+> As several workflows are deprecated and the Master Workflow is included via the Skyline.DataMiner.VisualStudioTemplates NuGet package, this repository has been archived.
+
 GitHub starter workflows for DataMiner related development.
 
 We offer a number of starter workflows that can be used as the starting point to create a workflow for your GitHub repository. These .yml files are designed to be small and call both reusable workflows and actions from the marketplace that always try to run the latest versions.
